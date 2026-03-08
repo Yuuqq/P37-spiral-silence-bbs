@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌀</text></svg>" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>P37 沉默的螺旋：多智能体动力学沙盘 (ABM Simulation)</title>
+  <link rel="stylesheet" href="../shared/design-tokens.css" />
+  <link rel="stylesheet" href="./styles.css" />
+  <meta name="description" content="基于多智能体建模（Agent-Based Modeling）的沉默的螺旋理论仿真沙盘" />
+</head>
+
+<body>
+  <main class="app">
+    <header class="hero">
+      <h1>沉默的螺旋：多智能体动力学沙盘</h1>
+      <p>
+        探索意见气候如何形成：当个体感知自己处于少数派时，因恐惧孤立而选择沉默，进而导致“弱者愈弱，强者愈强”的螺旋效应。
+        <strong>这是基于真实的 Agent-Based Modeling (ABM) 构建的社会学仿真实验。</strong>
+      </p>
+    </header>
+
+    <div class="dashboard">
+      <!-- 控制面板 -->
+      <section class="controls panel">
+        <h2>🔬 仿真参数实验台</h2>
+
+        <div class="control-group">
+          <label>
+            <span>初始观点分布 (红方 A 比例)</span>
+            <span id="valOpinionA">50%</span>
+          </label>
+          <input type="range" id="paramOpinionA" min="10" max="90" value="50" step="1" />
+          <div class="param-desc">决定初始时持有观点 A 和 观点 B 的人数比例。</div>
+        </div>
+
+        <div class="control-group">
+          <label>
+            <span>环境感知半径 (Network Density)</span>
+            <span id="valRadius">100</span>
+          </label>
+          <input type="range" id="paramRadius" min="50" max="400" value="100" step="10" />
+          <div class="param-desc">每个智能体能“听到”多大范围内的声音。代表社交圈层或媒体渗透率。</div>
+        </div>
+
+        <div class="control-group">
+          <label>
+            <span>社会从众压力 (Conformity Pressure)</span>
+            <span id="valPressure">60%</span>
+          </label>
+          <input type="range" id="paramPressure" min="10" max="100" value="60" step="1" />
+          <div class="param-desc">对方观点在感知范围内超过此比例时，智能体才会感受到压力。</div>
+        </div>
+
+        <div class="control-group">
+          <label>
+            <span>少数派坚韧度 (Hardcoreness)</span>
+            <span id="valHardcore">10%</span>
+          </label>
+          <input type="range" id="paramHardcore" min="0" max="50" value="10" step="1" />
+          <div class="param-desc">群体中“死硬派”的比例，无论面对多大压力都不会沉默（打破螺旋的关键）。</div>
+        </div>
+
+        <div class="actions">
+          <button id="btnSetup" class="btn primary">🔄 初始化网络</button>
+          <button id="btnPlay" class="btn success">▶️ 运行仿真</button>
+          <button id="btnStep" class="btn secondary">⏭️ 单步演化</button>
+        </div>
+      </section>
+
+      <!-- 仿真视图区 -->
+      <section class="simulation panel">
+        <div class="stats-header">
+          <div class="stat-item red">
+            <div class="stat-label">发声者 A (红)</div>
+            <div class="stat-value" id="statVocalA">0</div>
+          </div>
+          <div class="stat-item blue">
+            <div class="stat-label">发声者 B (蓝)</div>
+            <div class="stat-value" id="statVocalB">0</div>
+          </div>
+          <div class="stat-item gray">
+            <div class="stat-label">沉默者 (螺旋牺牲品)</div>
+            <div class="stat-value" id="statSilent">0</div>
+          </div>
+        </div>
+
+        <div class="canvas-container">
+          <canvas id="abmCanvas" width="600" height="400"></canvas>
+          <div id="spiralAlert" class="spiral-alert hidden">🌪️ 沉默的螺旋已形成！</div>
+        </div>
+
+        <div class="legend">
+          <span><span class="dot d-red"></span> 坚定发声的红方</span>
+          <span><span class="dot d-blue"></span> 坚定发声的蓝方</span>
+          <span><span class="dot d-gray"></span> 已陷入沉默的个体</span>
+          <span><span class="dot d-hardcore"></span> 🌟 死硬派(带外发光)</span>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script src="./pm-metrics.js" defer></script>
+  <script src="./app.js" defer></script>
+
+  <!-- Privacy Notice -->
+  <div style="text-align:center;padding:12px 16px;font-size:12px;color:#888;border-top:1px solid #eee;margin-top:24px;">
+    🔒 隐私提示：本工具所有社会学仿真演算均在您的浏览器本地实时运行，无服务器数据交互。
+  </div>
+
+  <!-- Cross-Project Navigation -->
+  <nav
+    style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:13px;border-top:1px solid #e5e5e5;margin-top:16px;color:#666;">
+    <a href="https://yuuqq.github.io/_codex/" style="text-decoration:none;">📋 工具箱导航</a>
+    <span style="opacity:.4">P37</span>
+  </nav>
+</body>
+
+</html>
