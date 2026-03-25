@@ -322,8 +322,8 @@ function renderMeters(privateA, visibleA) {
 }
 
 function renderTopLabels(visibleA) {
-  el.labelTick.textContent = `t = ${state.tick}`;
-  el.labelClimate.textContent = `意见气候：A ${pct(visibleA)}`;
+  el.labelTick.textContent = `t=${state.tick}`;
+  el.labelClimate.textContent = `气候：A ${pct(visibleA)}`;
 }
 
 function renderPosts(cfg) {
@@ -519,7 +519,7 @@ function renderAll(cfg, privateA, visibleA, silentRate) {
   renderMeters(privateA, visibleA);
   renderTopLabels(visibleA);
   el.labelPosts.textContent = `A ${state.lastTickPostsA} · B ${state.lastTickPostsB}`;
-  el.labelSilent.textContent = `沉默估计：${pct(silentRate)}`;
+  el.labelSilent.textContent = `沉默 ${pct(silentRate)}`;
 
   updateInsight(privateA, visibleA, silentRate, cfg);
   renderPosts(cfg);
