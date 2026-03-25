@@ -6,100 +6,192 @@
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌀</text></svg>" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>P37 沉默的螺旋：多智能体动力学沙盘 (ABM Simulation)</title>
+  <title>P37 沉默的螺旋：论坛舆论气候实验台</title>
   <link rel="stylesheet" href="../shared/design-tokens.css" />
   <link rel="stylesheet" href="./styles.css" />
-  <meta name="description" content="基于多智能体建模（Agent-Based Modeling）的沉默的螺旋理论仿真沙盘" />
+  <meta name="description" content="沉默的螺旋互动论坛模拟：私下观点 vs 可见舆论气候，点赞/点踩与可见度衰减如何让少数派逐步沉默。" />
+  <meta property="og:title" content="P37 沉默的螺旋：论坛舆论气候实验台" />
+  <meta property="og:description" content="沉默的螺旋互动论坛模拟：私下观点 vs 可见舆论气候，点赞/点踩与可见度衰减的反馈回路。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://yuuqq.github.io/P37-spiral-silence-bbs/" />
+  <link rel="manifest" href="./manifest.json" />
+<style media="print">
+.gnav,.pedagogy-panel,.explore-section,[class*="dark-toggle"],button[aria-label]{display:none!important}
+body{background:#fff!important;color:#000!important;font-size:11pt}
+.app,main,.container{box-shadow:none!important;border:none!important;padding:0!important}
+a{color:#000!important;text-decoration:underline}
+a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
+@page{margin:2cm}
+</style>
 </head>
 
 <body>
   <main class="app">
     <header class="hero">
-      <h1>沉默的螺旋：多智能体动力学沙盘</h1>
-      <p>
-        探索意见气候如何形成：当个体感知自己处于少数派时，因恐惧孤立而选择沉默，进而导致“弱者愈弱，强者愈强”的螺旋效应。
-        <strong>这是基于真实的 Agent-Based Modeling (ABM) 构建的社会学仿真实验。</strong>
+      <div class="kicker">P37 · Spiral of Silence Lab</div>
+      <h1>沉默的螺旋：论坛舆论气候实验台</h1>
+      <p class="lead">
+        你看到的“主流”，未必等于真实多数。
+        本页面用一个可调参的论坛线程，演示 <strong>私下观点</strong> 如何在
+        <strong>点赞/点踩</strong>、<strong>可见度衰减</strong> 与 <strong>恐惧孤立</strong> 的反馈回路中，逐步变成一边倒的“可见舆论”。
       </p>
+      <div class="pill-row" aria-label="特性">
+        <span class="pill">私下观点 vs 可见舆论</span>
+        <span class="pill">点赞/点踩</span>
+        <span class="pill">可见度衰减</span>
+        <span class="pill">媒体偏置</span>
+      </div>
     </header>
 
-    <div class="dashboard">
-      <!-- 控制面板 -->
-      <section class="controls panel">
-        <h2>🔬 仿真参数实验台</h2>
+    <section class="card"><details class="teach-card" open><summary>🎓 沉默的螺旋理论</summary><p>诺尔·诺伊曼提出的“沉默的螺旋”认为：人们会评估主流舆论，当发现自己观点属少数时，傾向于保持沉默。本工具通过 250 个智能体的社会仿真（ABM）演示这一现象如何影响公共论坛的意见多元性。</p></details></section>
 
-        <div class="control-group">
-          <label>
-            <span>初始观点分布 (红方 A 比例)</span>
-            <span id="valOpinionA">50%</span>
-          </label>
-          <input type="range" id="paramOpinionA" min="10" max="90" value="50" step="1" />
-          <div class="param-desc">决定初始时持有观点 A 和 观点 B 的人数比例。</div>
+    <section class="grid" aria-label="主面板">
+      <section class="card controls" aria-label="仿真参数">
+        <h2>参数与操作</h2>
+
+        <div class="field">
+          <label for="paramOpinionA">私下观点 A 占比</label>
+          <div class="field-row">
+            <input type="range" id="paramOpinionA" min="10" max="90" value="50" step="1" />
+            <output id="valOpinionA" for="paramOpinionA">50%</output>
+          </div>
+          <p class="hint">只改变“真实分布”，不直接改变可见舆论。</p>
         </div>
 
-        <div class="control-group">
-          <label>
-            <span>环境感知半径 (Network Density)</span>
-            <span id="valRadius">100</span>
-          </label>
-          <input type="range" id="paramRadius" min="50" max="400" value="100" step="10" />
-          <div class="param-desc">每个智能体能“听到”多大范围内的声音。代表社交圈层或媒体渗透率。</div>
+        <div class="field">
+          <label for="paramFear">恐惧孤立强度</label>
+          <div class="field-row">
+            <input type="range" id="paramFear" min="0" max="100" value="70" step="1" />
+            <output id="valFear" for="paramFear">70%</output>
+          </div>
+          <p class="hint">越高：越容易因为“觉得自己是少数派”而不发声。</p>
         </div>
 
-        <div class="control-group">
-          <label>
-            <span>社会从众压力 (Conformity Pressure)</span>
-            <span id="valPressure">60%</span>
-          </label>
-          <input type="range" id="paramPressure" min="10" max="100" value="60" step="1" />
-          <div class="param-desc">对方观点在感知范围内超过此比例时，智能体才会感受到压力。</div>
+        <div class="field">
+          <label for="paramConformity">从众惩罚（点踩力度）</label>
+          <div class="field-row">
+            <input type="range" id="paramConformity" min="0" max="100" value="55" step="1" />
+            <output id="valConformity" for="paramConformity">55%</output>
+          </div>
+          <p class="hint">越高：反对帖更容易被点踩，热度更快坠落。</p>
         </div>
 
-        <div class="control-group">
-          <label>
-            <span>少数派坚韧度 (Hardcoreness)</span>
-            <span id="valHardcore">10%</span>
-          </label>
-          <input type="range" id="paramHardcore" min="0" max="50" value="10" step="1" />
-          <div class="param-desc">群体中“死硬派”的比例，无论面对多大压力都不会沉默（打破螺旋的关键）。</div>
+        <div class="field">
+          <label for="paramAttention">注意力窗口（前 N 条热帖）</label>
+          <div class="field-row">
+            <input type="range" id="paramAttention" min="8" max="60" value="22" step="1" />
+            <output id="valAttention" for="paramAttention">22</output>
+          </div>
+          <p class="hint">越小：人们只看“头部内容”，更容易误判意见气候。</p>
         </div>
 
-        <div class="actions">
-          <button id="btnSetup" class="btn primary">🔄 初始化网络</button>
-          <button id="btnPlay" class="btn success">▶️ 运行仿真</button>
-          <button id="btnStep" class="btn secondary">⏭️ 单步演化</button>
+        <div class="field">
+          <label for="paramMediaBias">媒体偏置（A 更占优势）</label>
+          <div class="field-row">
+            <input type="range" id="paramMediaBias" min="-50" max="50" value="0" step="1" />
+            <output id="valMediaBias" for="paramMediaBias">0</output>
+          </div>
+          <p class="hint">改变“外部信号”对意见气候的加权影响。</p>
         </div>
+
+        <div class="field">
+          <label for="paramHardcore">死硬派比例（永远发声）</label>
+          <div class="field-row">
+            <input type="range" id="paramHardcore" min="0" max="25" value="6" step="1" />
+            <output id="valHardcore" for="paramHardcore">6%</output>
+          </div>
+          <p class="hint">少数坚定发声者可能打断螺旋。</p>
+        </div>
+
+        <div class="actions" aria-label="操作">
+          <button id="btnReset" type="button" class="btn">重置</button>
+          <button id="btnPlay" type="button" class="btn primary">运行</button>
+          <button id="btnStep" type="button" class="btn ghost">单步</button>
+          <button id="btnNudgeA" type="button" class="btn subtle">投放 A 热帖</button>
+          <button id="btnNudgeB" type="button" class="btn subtle">投放 B 热帖</button>
+        </div>
+
+        <p id="status" class="status" aria-live="polite">状态：已初始化。点击“运行”观察螺旋如何形成。</p>
+
+        <details class="assumptions">
+          <summary>模型假设（教学用，非预测）</summary>
+          <ul>
+            <li>个体是否发声取决于“可见舆论”与“恐惧孤立”。</li>
+            <li>点赞/点踩改变帖子热度，热度决定可见度（可见度衰减）。</li>
+            <li>人们只看前 N 条热帖，并以此估计意见气候。</li>
+            <li>媒体偏置以“外部信号”形式参与气候估计。</li>
+          </ul>
+        </details>
       </section>
 
-      <!-- 仿真视图区 -->
-      <section class="simulation panel">
-        <div class="stats-header">
-          <div class="stat-item red">
-            <div class="stat-label">发声者 A (红)</div>
-            <div class="stat-value" id="statVocalA">0</div>
+      <section class="card stage" aria-label="论坛与指标">
+        <div class="stage-top">
+          <div class="stat">
+            <div class="stat-h">私下观点</div>
+            <div class="meter" aria-label="私下观点分布">
+              <div id="meterPrivateA" class="meter-fill a" style="width:50%"></div>
+              <div id="meterPrivateB" class="meter-fill b" style="width:50%"></div>
+            </div>
+            <div class="stat-foot" id="labelPrivate">A 50% · B 50%</div>
           </div>
-          <div class="stat-item blue">
-            <div class="stat-label">发声者 B (蓝)</div>
-            <div class="stat-value" id="statVocalB">0</div>
+          <div class="stat">
+            <div class="stat-h">可见舆论（前 N 条）</div>
+            <div class="meter" aria-label="可见舆论分布">
+              <div id="meterVisibleA" class="meter-fill a" style="width:50%"></div>
+              <div id="meterVisibleB" class="meter-fill b" style="width:50%"></div>
+            </div>
+            <div class="stat-foot" id="labelVisible">A 50% · B 50%</div>
           </div>
-          <div class="stat-item gray">
-            <div class="stat-label">沉默者 (螺旋牺牲品)</div>
-            <div class="stat-value" id="statSilent">0</div>
+          <div class="stat mini">
+            <div class="stat-h">近一轮发帖</div>
+            <div class="big" id="labelPosts">A 0 · B 0</div>
+            <div class="stat-foot" id="labelSilent">沉默估计：0%</div>
           </div>
         </div>
 
-        <div class="canvas-container">
-          <canvas id="abmCanvas" width="600" height="400"></canvas>
-          <div id="spiralAlert" class="spiral-alert hidden">🌪️ 沉默的螺旋已形成！</div>
+        <div class="chart-wrap" aria-label="时间序列图">
+          <canvas id="chartCanvas" width="1000" height="240"></canvas>
+          <div class="chart-legend" aria-label="图例">
+            <span><i class="swatch a"></i> 私下观点 A</span>
+            <span><i class="swatch b"></i> 可见舆论 A</span>
+            <span><i class="swatch c"></i> 发帖占比 A</span>
+          </div>
         </div>
 
-        <div class="legend">
-          <span><span class="dot d-red"></span> 坚定发声的红方</span>
-          <span><span class="dot d-blue"></span> 坚定发声的蓝方</span>
-          <span><span class="dot d-gray"></span> 已陷入沉默的个体</span>
-          <span><span class="dot d-hardcore"></span> 🌟 死硬派(带外发光)</span>
+        <div class="split">
+          <section class="thread" aria-label="论坛热帖">
+            <div class="thread-head">
+              <h2 class="thread-title">论坛热帖</h2>
+              <div class="thread-meta">
+                <span id="labelTick">t = 0</span>
+                <span class="dotsep">·</span>
+                <span id="labelClimate">意见气候：A 50%</span>
+              </div>
+            </div>
+            <div id="postList" class="post-list" role="list"></div>
+          </section>
+          <aside class="insight" aria-label="解读与提示">
+            <h2 class="thread-title">解读</h2>
+            <p id="insightText" class="insight-text">
+              当“前 N 条热帖”被某一方占据时，另一方会感知到更强的孤立风险，从而更少发声，进一步加剧单一化。
+            </p>
+            <div id="spiralAlert" class="alert hidden" role="status">
+              沉默的螺旋已形成：可见舆论与真实分布出现长期背离。
+            </div>
+            <div class="tips" aria-label="建议">
+              <div class="tip">
+                <div class="tip-h">如何打断螺旋</div>
+                <p class="tip-p">提高“死硬派比例”，或增大“注意力窗口”，让少数声音更容易被看见。</p>
+              </div>
+              <div class="tip">
+                <div class="tip-h">如何加速螺旋</div>
+                <p class="tip-p">提高“恐惧孤立”与“点踩力度”，并缩小“注意力窗口”。</p>
+              </div>
+            </div>
+          </aside>
         </div>
       </section>
-    </div>
+    </section>
   </main>
   <script src="./pm-metrics.js" defer></script>
   <script src="./app.js" defer></script>
@@ -112,9 +204,19 @@
   <!-- Cross-Project Navigation -->
   <nav
     style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:13px;border-top:1px solid #e5e5e5;margin-top:16px;color:#666;">
-    <a href="https://yuuqq.github.io/_codex/" style="text-decoration:none;">📋 工具箱导航</a>
+    <a href="https://yuuqq.github.io/journalism-toolbox/" style="text-decoration:none;">📋 工具箱导航</a>
     <span style="opacity:.4">P37</span>
   </nav>
+  <script src="../shared/dark-toggle.js" defer></script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}</script>
+  <script src="../shared/cmd-palette.js" defer></script>
+  <script src="../shared/toast.js" defer></script>
+  <script src="../shared/onboarding.js" defer></script>
+
+  <script src="https://yuuqq.github.io/shared/pedagogy-data-p1.js" defer></script>
+  <script src="https://yuuqq.github.io/shared/pedagogy-data-p2.js" defer></script>
+  <script src="https://yuuqq.github.io/shared/global-nav.js" defer></script>
+  <script src="https://yuuqq.github.io/shared/kbd-hints.js" defer></script>
 </body>
 
 </html>
