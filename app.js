@@ -1,4 +1,27 @@
 /**
+ * Optional deterministic RNG via ?seed=N URL param.
+ * When present, overrides Math.random with mulberry32 PRNG so teaching
+ * scenarios are reproducible and E2E tests can assert spiral trigger.
+ * No-op when ?seed is absent (default unseeded behavior).
+ */
+(function () {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const seedRaw = params.get("seed");
+    if (!seedRaw) return;
+    let s = parseInt(seedRaw, 10);
+    if (!Number.isFinite(s)) s = 0;
+    s = (s | 0) >>> 0;
+    Math.random = function mulberry32() {
+      s |= 0; s = (s + 0x6D2B79F5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  } catch (_e) { /* leave Math.random alone */ }
+})();
+
+/**
  * P37 沉默的螺旋互动论坛模拟
  * - 私下观点 vs 可见舆论气候（前 N 条热帖）
  * - 点赞/点踩 + 可见度衰减（热度排序/衰减）
