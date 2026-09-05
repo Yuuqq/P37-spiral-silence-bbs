@@ -406,6 +406,22 @@ function resizeCanvasToDisplaySize(canvas) {
   return false;
 }
 
+// Theme-adaptive ink color: resolve --ink once, then apply alpha per use
+let inkRgbCache = null;
+function inkRgba(alpha) {
+  if (inkRgbCache === null) {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+    const m = /^#?([0-9a-fA-F]{6})$/.exec(raw);
+    if (m) {
+      const v = parseInt(m[1], 16);
+      inkRgbCache = `${(v >> 16) & 255},${(v >> 8) & 255},${v & 255}`;
+    } else {
+      inkRgbCache = "0,0,0";
+    }
+  }
+  return `rgba(${inkRgbCache},${alpha})`;
+}
+
 function drawChart() {
   if (!el.chart) return;
   resizeCanvasToDisplaySize(el.chart);
@@ -426,7 +442,7 @@ function drawChart() {
 
   const data = state.history;
   if (!data.length) {
-    ctx.fillStyle = "rgba(0,0,0,.35)";
+    ctx.fillStyle = inkRgba(0.35);
     ctx.font = `${Math.round(12 * (window.devicePixelRatio || 1))}px sans-serif`;
     ctx.fillText("等待数据…", left, top + 18);
     return;
@@ -434,16 +450,16 @@ function drawChart() {
 
   // Background
   ctx.save();
-  ctx.fillStyle = "rgba(0,0,0,.03)";
+  ctx.fillStyle = inkRgba(0.03);
   ctx.fillRect(left, top, cw, ch);
   ctx.restore();
 
   // Grid + labels
   ctx.save();
-  ctx.strokeStyle = "rgba(0,0,0,.08)";
+  ctx.strokeStyle = inkRgba(0.08);
   ctx.lineWidth = 1;
   ctx.font = `${Math.round(11 * (window.devicePixelRatio || 1))}px sans-serif`;
-  ctx.fillStyle = "rgba(0,0,0,.35)";
+  ctx.fillStyle = inkRgba(0.35);
   for (let i = 0; i <= 4; i++) {
     const y = top + (ch * i) / 4;
     ctx.beginPath();
@@ -503,12 +519,12 @@ function drawChart() {
   const last = data[data.length - 1];
   const x = xAt(n - 1);
   ctx.save();
-  ctx.strokeStyle = "rgba(0,0,0,.2)";
+  ctx.strokeStyle = inkRgba(0.2);
   ctx.beginPath();
   ctx.moveTo(x, top);
   ctx.lineTo(x, bottom);
   ctx.stroke();
-  ctx.fillStyle = "rgba(0,0,0,.55)";
+  ctx.fillStyle = inkRgba(0.55);
   ctx.font = `${Math.round(11 * (window.devicePixelRatio || 1))}px sans-serif`;
   ctx.fillText(`t=${state.tick}`, Math.min(x + 6, right - 38), top + 14);
   ctx.fillText(`可见A ${pct(last.visibleA)}`, Math.min(x + 6, right - 80), top + 30);
@@ -670,7 +686,7 @@ function step() {
 
 function injectHot(stance) {
   const cfg = getUiConfig();
-  const seedUp = stance === "A" ? 26 : 26;
+  const seedUp = 26;
   const seedDown = 0;
   state.posts.push(makePost(stance, state.tick, { authorId: -1, injected: true, seedUp, seedDown }));
   recomputePostScores(cfg);
