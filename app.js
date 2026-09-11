@@ -1,4 +1,29 @@
 /**
+ * Optional deterministic RNG via ?seed=N URL param.
+ * When present, overrides Math.random with mulberry32 PRNG so teaching
+ * scenarios are reproducible and E2E tests can assert spiral trigger.
+ * No-op when ?seed is absent (default unseeded behavior).
+ */
+window.simRandom = Math.random;
+
+(function () {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const seedRaw = params.get("seed");
+    if (!seedRaw) return;
+    let s = parseInt(seedRaw, 10);
+    if (!Number.isFinite(s)) s = 0;
+    s = (s | 0) >>> 0;
+    window.simRandom = function mulberry32() {
+      s |= 0; s = (s + 0x6D2B79F5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  } catch (_e) { /* leave window.simRandom alone */ }
+})();
+
+/**
  * P37 沉默的螺旋互动论坛模拟
  * - 私下观点 vs 可见舆论气候（前 N 条热帖）
  * - 点赞/点踩 + 可见度衰减（热度排序/衰减）
@@ -86,10 +111,10 @@ const state = {
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
 function sigmoid(z) { return 1 / (1 + Math.exp(-z)); }
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function pick(arr) { return arr[Math.floor(window.simRandom() * arr.length)]; }
 function shuffleInPlace(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(window.simRandom() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
@@ -184,17 +209,17 @@ function perceivedClimateA(cfg) {
 function makeAgents(cfg) {
   const agents = [];
   for (let i = 0; i < NUM_AGENTS; i++) {
-    const stance = Math.random() < cfg.opinionA ? "A" : "B";
-    const hardcore = Math.random() < cfg.hardcore;
+    const stance = window.simRandom() < cfg.opinionA ? "A" : "B";
+    const hardcore = window.simRandom() < cfg.hardcore;
     // Courage: most people are moderate; hardcore gets a boost
-    const courage = clamp((Math.random() + Math.random()) / 2 + (hardcore ? 0.22 : 0), 0, 1);
+    const courage = clamp((window.simRandom() + window.simRandom()) / 2 + (hardcore ? 0.22 : 0), 0, 1);
     agents.push({ id: i, stance, hardcore, courage, lastSpeakP: 0 });
   }
   return agents;
 }
 
 function makePost(stance, tick, meta) {
-  const authorId = meta?.authorId ?? Math.floor(Math.random() * NUM_AGENTS);
+  const authorId = meta?.authorId ?? Math.floor(window.simRandom() * NUM_AGENTS);
   const isInjected = !!meta?.injected;
   const baseText = pick(POST_TEMPLATES[stance]);
   const text = isInjected ? `【置顶投放】${baseText}` : baseText;
@@ -202,7 +227,7 @@ function makePost(stance, tick, meta) {
   const down = meta?.seedDown ?? 0;
 
   return {
-    id: `${tick}-${Math.random().toString(16).slice(2)}`,
+    id: `${tick}-${window.simRandom().toString(16).slice(2)}`,
     stance,
     t: tick,
     authorId,
@@ -229,8 +254,8 @@ function pickWeighted(posts, weightFn) {
     weights[i] = w;
     total += w;
   }
-  if (total <= 0) return posts[Math.floor(Math.random() * posts.length)];
-  let r = Math.random() * total;
+  if (total <= 0) return posts[Math.floor(window.simRandom() * posts.length)];
+  let r = window.simRandom() * total;
   for (let i = 0; i < posts.length; i++) {
     r -= weights[i];
     if (r <= 0) return posts[i];
@@ -244,8 +269,8 @@ function simulateVotes(perceivedA, cfg) {
 
   const voters = cfg.voterSample;
   for (let i = 0; i < voters; i++) {
-    if (Math.random() > cfg.voteEngagement) continue;
-    const voter = state.agents[Math.floor(Math.random() * state.agents.length)];
+    if (window.simRandom() > cfg.voteEngagement) continue;
+    const voter = state.agents[Math.floor(window.simRandom() * state.agents.length)];
     const support = voter.stance === "A" ? perceivedA : (1 - perceivedA);
     const confidence = sigmoid((support - 0.5) * 9); // 0..1
 
@@ -254,11 +279,11 @@ function simulateVotes(perceivedA, cfg) {
 
     if (aligned) {
       const pUp = clamp(0.18 + 0.60 * confidence, 0, 0.92);
-      if (Math.random() < pUp) target.up += 1;
+      if (window.simRandom() < pUp) target.up += 1;
     } else {
       const pileOn = target.rank < 0 ? 0.10 : 0;
       const pDown = clamp((0.10 + 0.70 * confidence) * (0.35 + 0.65 * cfg.conformityPct) + pileOn, 0, 0.98);
-      if (Math.random() < pDown) target.down += 1;
+      if (window.simRandom() < pDown) target.down += 1;
     }
   }
 }
@@ -343,44 +368,84 @@ function renderPosts(cfg) {
   }
 
   const sorted = [...state.posts].sort((a, b) => b.rank - a.rank).slice(0, MAX_POSTS_RENDER);
-  const parts = [];
+
+  // Create a map of existing elements
+  const existingNodes = new Map();
+  for (const child of el.postList.children) {
+    const id = child.getAttribute("data-id");
+    if (id) {
+      existingNodes.set(id, child);
+    }
+  }
+
+  // Determine what nodes should exist and in what order
+  const newOrderIds = new Set();
+
   for (const p of sorted) {
+    newOrderIds.add(p.id);
     const shadowed = p.vis < 0.26;
     const net = p.up - p.down;
     const visPct = Math.round(p.vis * 100);
     const author = (p.authorId === -1) ? "系统" : `用户#${p.authorId}`;
     const stanceLabel = p.stance;
 
-    parts.push(`
-      <article class="post ${shadowed ? "is-shadowed" : ""}" data-stance="${p.stance}" data-id="${p.id}" role="listitem">
+    let article = existingNodes.get(p.id);
+    if (!article) {
+      // Create new node
+      article = document.createElement("article");
+      article.className = `post`;
+      article.setAttribute("data-stance", p.stance);
+      article.setAttribute("data-id", p.id);
+      article.setAttribute("role", "listitem");
+      article.innerHTML = `
         <div class="post-head">
           <div class="badge">
-            <span class="stance">${stanceLabel}</span>
-            <span>t=${p.t}</span>
+            <span class="stance"></span>
+            <span class="t-span"></span>
             <span class="dotsep">·</span>
-            <span>${author}</span>
+            <span class="author-span"></span>
           </div>
-          <div class="vis">可见度 ${visPct}%</div>
+          <div class="vis vis-head"></div>
         </div>
-        <p class="post-body">${escapeHtml(p.text)}</p>
+        <p class="post-body"></p>
         <div class="post-foot">
           <div class="votes" aria-label="投票">
-            <button type="button" class="vote-btn" data-vote="up" data-id="${p.id}" aria-label="点赞">赞 ${p.up}</button>
-            <button type="button" class="vote-btn" data-vote="down" data-id="${p.id}" aria-label="点踩">踩 ${p.down}</button>
-            <span class="score" aria-label="净票">净票 ${net}</span>
+            <button type="button" class="vote-btn btn-up" data-vote="up" data-id="${p.id}" aria-label="点赞"></button>
+            <button type="button" class="vote-btn btn-down" data-vote="down" data-id="${p.id}" aria-label="点踩"></button>
+            <span class="score" aria-label="净票"></span>
           </div>
-          <div class="vis" aria-label="热度">热度 ${p.rank.toFixed(1)}</div>
+          <div class="vis vis-foot" aria-label="热度"></div>
         </div>
-      </article>
-    `);
-  }
-  el.postList.innerHTML = parts.join("");
+      `;
+    }
 
-  // Also cap stored posts to avoid unbounded growth
-  if (state.posts.length > MAX_POSTS_STORE) {
-    state.posts.sort((a, b) => a.t - b.t);
-    state.posts = state.posts.slice(-MAX_POSTS_STORE);
-    recomputePostScores(cfg);
+    // Update state
+    if (shadowed) {
+      article.classList.add("is-shadowed");
+    } else {
+      article.classList.remove("is-shadowed");
+    }
+
+    article.querySelector(".stance").textContent = stanceLabel;
+    article.querySelector(".t-span").textContent = `t=${p.t}`;
+    article.querySelector(".author-span").textContent = author;
+    article.querySelector(".vis-head").textContent = `可见度 ${visPct}%`;
+    article.querySelector(".post-body").textContent = p.text; // Text content safely escapes HTML
+    article.querySelector(".btn-up").textContent = `赞 ${p.up}`;
+    article.querySelector(".btn-down").textContent = `踩 ${p.down}`;
+    article.querySelector(".score").textContent = `净票 ${net}`;
+    article.querySelector(".vis-foot").textContent = `热度 ${p.rank.toFixed(1)}`;
+
+    // Add it to the parent in the correct order
+    el.postList.appendChild(article);
+  }
+
+  // Remove elements that are no longer in the sorted list (or were the dummy prompt)
+  for (const child of Array.from(el.postList.children)) {
+    const id = child.getAttribute("data-id");
+    if (!id || !newOrderIds.has(id)) {
+      el.postList.removeChild(child);
+    }
   }
 }
 
@@ -406,22 +471,6 @@ function resizeCanvasToDisplaySize(canvas) {
   return false;
 }
 
-// Theme-adaptive ink color: resolve --ink once, then apply alpha per use
-let inkRgbCache = null;
-function inkRgba(alpha) {
-  if (inkRgbCache === null) {
-    const raw = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
-    const m = /^#?([0-9a-fA-F]{6})$/.exec(raw);
-    if (m) {
-      const v = parseInt(m[1], 16);
-      inkRgbCache = `${(v >> 16) & 255},${(v >> 8) & 255},${v & 255}`;
-    } else {
-      inkRgbCache = "0,0,0";
-    }
-  }
-  return `rgba(${inkRgbCache},${alpha})`;
-}
-
 function drawChart() {
   if (!el.chart) return;
   resizeCanvasToDisplaySize(el.chart);
@@ -442,7 +491,7 @@ function drawChart() {
 
   const data = state.history;
   if (!data.length) {
-    ctx.fillStyle = inkRgba(0.35);
+    ctx.fillStyle = "rgba(0,0,0,.35)";
     ctx.font = `${Math.round(12 * (window.devicePixelRatio || 1))}px sans-serif`;
     ctx.fillText("等待数据…", left, top + 18);
     return;
@@ -450,16 +499,16 @@ function drawChart() {
 
   // Background
   ctx.save();
-  ctx.fillStyle = inkRgba(0.03);
+  ctx.fillStyle = "rgba(0,0,0,.03)";
   ctx.fillRect(left, top, cw, ch);
   ctx.restore();
 
   // Grid + labels
   ctx.save();
-  ctx.strokeStyle = inkRgba(0.08);
+  ctx.strokeStyle = "rgba(0,0,0,.08)";
   ctx.lineWidth = 1;
   ctx.font = `${Math.round(11 * (window.devicePixelRatio || 1))}px sans-serif`;
-  ctx.fillStyle = inkRgba(0.35);
+  ctx.fillStyle = "rgba(0,0,0,.35)";
   for (let i = 0; i <= 4; i++) {
     const y = top + (ch * i) / 4;
     ctx.beginPath();
@@ -519,12 +568,12 @@ function drawChart() {
   const last = data[data.length - 1];
   const x = xAt(n - 1);
   ctx.save();
-  ctx.strokeStyle = inkRgba(0.2);
+  ctx.strokeStyle = "rgba(0,0,0,.2)";
   ctx.beginPath();
   ctx.moveTo(x, top);
   ctx.lineTo(x, bottom);
   ctx.stroke();
-  ctx.fillStyle = inkRgba(0.55);
+  ctx.fillStyle = "rgba(0,0,0,.55)";
   ctx.font = `${Math.round(11 * (window.devicePixelRatio || 1))}px sans-serif`;
   ctx.fillText(`t=${state.tick}`, Math.min(x + 6, right - 38), top + 14);
   ctx.fillText(`可见A ${pct(last.visibleA)}`, Math.min(x + 6, right - 80), top + 30);
@@ -559,7 +608,7 @@ function runOneTick() {
   for (const a of state.agents) {
     const pSpeak = speakProbability(a, perceivedA, cfg);
     a.lastSpeakP = pSpeak;
-    if (Math.random() < pSpeak) speakers.push(a);
+    if (window.simRandom() < pSpeak) speakers.push(a);
   }
   shuffleInPlace(speakers);
   const newSpeakers = speakers.slice(0, cfg.maxNewPostsPerTick);
@@ -605,6 +654,13 @@ function runOneTick() {
 
   recordHistory(privateA, visibleA, speakA, silentRate);
   spiralCheck(privateA, visibleA, silentRate);
+
+  // 8) cap stored posts to avoid unbounded growth
+  if (state.posts.length > MAX_POSTS_STORE) {
+    state.posts.sort((a, b) => a.t - b.t);
+    state.posts = state.posts.slice(-MAX_POSTS_STORE);
+    recomputePostScores(cfg);
+  }
 
   renderAll(cfg, privateA, visibleA, silentRate);
 }
@@ -686,7 +742,7 @@ function step() {
 
 function injectHot(stance) {
   const cfg = getUiConfig();
-  const seedUp = 26;
+  const seedUp = stance === "A" ? 26 : 26;
   const seedDown = 0;
   state.posts.push(makePost(stance, state.tick, { authorId: -1, injected: true, seedUp, seedDown }));
   recomputePostScores(cfg);

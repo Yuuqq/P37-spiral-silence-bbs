@@ -1,12 +1,15 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="type-scale-v22">
+
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📰</text></svg>" />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌀</text></svg>" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#2563eb">
+  <meta name="color-scheme" content="light dark">
   <title>P37 沉默的螺旋：论坛舆论气候实验台</title>
   <link rel="stylesheet" href="../shared/design-tokens.css" />
-<link rel="stylesheet" href="./modern-styles.css" />
   <link rel="stylesheet" href="./styles.css" />
   <meta name="description" content="沉默的螺旋互动论坛模拟：私下观点 vs 可见舆论气候，点赞/点踩与可见度衰减如何让少数派逐步沉默。" />
   <meta property="og:title" content="P37 沉默的螺旋：论坛舆论气候实验台" />
@@ -25,7 +28,8 @@ a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
 </head>
 
 <body>
-  <main aria-label="主内容区域" class="app">
+  <a href="#main" class="skip-link">跳到主内容 / Skip to main content</a>
+  <main id="main" class="app">
     <!-- Compact Header -->
     <header class="header-bar">
       <div class="header-left">
@@ -135,7 +139,7 @@ a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
 
         <!-- Chart -->
         <div class="chart-wrap">
-          <canvas id="chartCanvas" width="1000" height="180" role="img" aria-label="沉默螺旋曲线图"></canvas>
+          <canvas id="chartCanvas" width="1000" height="180"></canvas>
           <div class="chart-legend" aria-label="图例">
             <span><i class="swatch a"></i>私下A</span>
             <span><i class="swatch b"></i>可见A</span>
@@ -180,28 +184,22 @@ a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
     </section>
   </main>
   <script src="./pm-metrics.js" defer></script>
-<script src="./app.js" defer></script>
+  <script src="./app.js" defer></script>
 
   <!-- Privacy Notice -->
-  <div style="text-align:center;padding:12px 16px;font-size:12px;color:#888;border-top:1px solid #eee;margin-top:24px;">
-    🔒 隐私提示：本工具所有数据处理均在您的浏览器本地完成，不会上传任何数据至服务器。
+  <div style="text-align:center;padding:6px 16px;font-size:11px;color:#888;border-top:1px solid #eee;margin-top:4px;">
+    🔒 所有仿真在浏览器本地运行，无服务器数据交互。
   </div>
 
   <!-- Cross-Project Navigation -->
-  <nav aria-label="工具箱导航" style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:13px;border-top:1px solid #e5e5e5;margin-top:16px;color:#666;">
+  <nav
+    style="display:flex;justify-content:space-between;align-items:center;padding:6px 16px;font-size:12px;border-top:1px solid #e5e5e5;color:#666;">
     <a href="https://yuuqq.github.io/journalism-toolbox/" style="text-decoration:none;">📋 工具箱导航</a>
     <span style="opacity:.4">P37</span>
   </nav>
+  <script src="../shared/releases/v2.6/loader.js" data-modules="dark,cmd,toast,onboarding,pedagogy-p1,pedagogy-p2,nav,kbd"></script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}</script>
 
-<script src="../shared/dark-toggle.js" defer></script>
-<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}</script>
-<script src="../shared/cmd-palette.js" defer></script>
-<script src="../shared/toast.js" defer></script>
-<script src="../shared/onboarding.js" defer></script>
-<script src="../shared/pedagogy-data-p1.js" defer></script>
-<script src="../shared/pedagogy-data-p2.js" defer></script>
-<script src="../shared/global-nav.js" defer></script>
-<script src="../shared/kbd-hints.js" defer></script>
 </body>
 
 </html>
