@@ -173,7 +173,7 @@ input[type="range"]{
 .btn{
   appearance:none;
   border:1px solid var(--line);
-  border-radius:8px;
+  border-radius:6px;
   padding:6px 8px;
   font:inherit;
   font-size:12px;
@@ -204,7 +204,7 @@ input[type="range"]{
 .status{
   margin:6px 0 0;
   padding:6px 8px;
-  border-radius:8px;
+  border-radius:6px;
   border:1px solid var(--line);
   background:linear-gradient(180deg, var(--surface-2), var(--surface-4));
   font-size:11px;
@@ -279,7 +279,7 @@ input[type="range"]{
 /* Chart */
 .chart-wrap{
   border:1px solid var(--line);
-  border-radius:10px;
+  border-radius:6px;
   background:linear-gradient(180deg, var(--surface-2), var(--surface-4));
   padding:6px 8px 4px;
   margin-bottom:6px;
@@ -360,7 +360,7 @@ input[type="range"]{
 
 .post{
   position:relative;
-  border-radius:8px;
+  border-radius:6px;
   border:1px solid var(--line);
   background:linear-gradient(180deg, var(--surface-1), var(--surface-2));
   padding:6px 8px 5px;
@@ -487,7 +487,7 @@ input[type="range"]{
 .alert{
   border:1px solid var(--bad);
   background:linear-gradient(135deg, var(--bad-light), var(--surface-2));
-  border-radius:8px;
+  border-radius:6px;
   padding:8px 10px;
   color:var(--bad);
   font-weight:750;
@@ -502,7 +502,7 @@ input[type="range"]{
 .tip{
   border:1px solid var(--line);
   background:linear-gradient(180deg, var(--surface-2), var(--surface-4));
-  border-radius:8px;
+  border-radius:6px;
   padding:6px 8px;
 }
 .tip-h{font-weight:750;font-size:12px}
@@ -588,7 +588,7 @@ input[type="range"]{
 }
 .toast-msg {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  background: #333; color: #fff; padding: 10px 20px; border-radius: 8px;
+  background: #333; color: #fff; padding: 10px 20px; border-radius: 6px;
   font-size: 0.9rem; z-index: 9999; opacity: 0;
   transition: opacity 0.3s ease;
 }

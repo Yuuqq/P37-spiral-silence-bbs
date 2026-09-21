@@ -380,3 +380,18 @@ button[aria-label*="导航"],
         border: 1px solid #ccc !important;
     }
 }
+
+/* === P31-P40 local clamps (radius / chat / range) === */
+.news-card, .decision-log, .msg, .bubble, .formula, .status,
+.toast, #toast, .kbd-hint-bar, #kbdHintBar {
+    border-radius: 6px !important;
+}
+.left.msg, .msg.left { background: var(--paper-hi) !important; color: var(--ink) !important; }
+.right.msg, .msg.right { background: #E2D2A8 !important; color: var(--ink) !important; }
+input[type="range"] { accent-color: var(--cinnabar, #A2402F) !important; }
+.choices button {
+    display: block;
+    width: 100% !important;
+    max-width: 100%;
+    text-align: left !important;
+}
