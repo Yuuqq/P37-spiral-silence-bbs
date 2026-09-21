@@ -247,7 +247,7 @@ input[type="range"]{
 .meter-mini{
   flex:1;
   height:8px;
-  border-radius:999px;
+  border-radius: 4px;
   overflow:hidden;
   background:var(--meter-bg);
   display:flex;
