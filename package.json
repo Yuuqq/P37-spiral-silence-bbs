@@ -1,0 +1,11 @@
+{
+  "name": "p37-spiral-silence-bbs",
+  "private": true,
+  "description": "沉默的螺旋互动论坛模拟。jsdom 只用于本地测试，不进入页面。",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}

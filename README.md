@@ -9,13 +9,15 @@
 
 **[https://yuuqq.github.io/P37-spiral-silence-bbs/](https://yuuqq.github.io/P37-spiral-silence-bbs/)**
 
-支持安装为 PWA 应用，离线使用。
+可安装为 PWA。本目录的页面和脚本会写入缓存；`../shared/` 要先在线打开一次才会进缓存。用 `file://` 直接打开不会注册 Service Worker。
 
 ## 🎓 教学使用说明
 
 > 本工具是《新闻传播AI应用教程》（中国人民大学出版社）配套在线实验平台工具，属于**篇Ⅳ 反思篇 · 第14章 新闻传播中的AI伦理**（教材 Tier 2 实验工具）。教材命名："沉默的螺旋互动论坛模拟器"。
 
 **学习目标**：通过调节"恐惧孤立、点踩力度、媒体偏置、死硬派比例"等参数重现异见被淹没的过程，理解"私下观点分布≠可见舆论气候"的螺旋机制。
+
+拖动「A 占比」会立刻改写智能体的私下立场，私下表与智能体人数一致。不拖这个滑杆时，私下分布在运行过程中保持不变，可见舆论仍会偏离。
 
 **核心术语**：沉默的螺旋（Spiral of Silence）、意见气候（Climate of Opinion）、对孤立的恐惧（Fear of Isolation）、多智能体模拟（Agent-Based Modeling, ABM）
 
@@ -43,6 +45,18 @@
 - ♿ 完整无障碍标签（aria-label）
 - 🔒 所有数据仅在浏览器本地处理
 
+## 💻 本地开发
+
+不要用 `file://` 双击打开。Service Worker 和 `../shared/` 都需要 HTTP。
+
+```bash
+npx serve .
+# 或
+python -m http.server
+```
+
+然后打开 `http://localhost:3000` 或 `http://localhost:8000`。地址栏加 `?seed=42` 可复现同一种子下的仿真。测试只依赖开发依赖 jsdom：`npm install` 后执行 `npm test`。
+
 ## 🛠️ 技术栈
 
 - 纯 HTML + CSS + JavaScript（零依赖框架）
@@ -56,8 +70,11 @@
 - `cmd-palette.js` — 🔍 Ctrl+K 命令面板
 - `toast.js` — 🔔 Toast 通知系统
 - `onboarding.js` — 🎯 首次访问引导
-- `sw.js` — 📱 PWA Service Worker
-- `pm-metrics.js` — 📊 使用量遥测
+- `pedagogy-data-p1.js` / `pedagogy-data-p2.js` — 教学面板数据
+- `global-nav.js` — 工具箱导航
+- `kbd-hints.js` — 键盘提示
+- `sw.js` — 📱 PWA Service Worker（缓存名按 P37 隔离，不使用全站通用名）
+- `pm-metrics.js` — 📊 使用量遥测（仅浏览器本地）
 
 ## 📄 许可
 

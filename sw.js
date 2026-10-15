@@ -32,10 +32,12 @@ const CORE_ASSETS = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(CORE_ASSETS).catch(() => {
-        // Silently skip missing optional files
+      return cache.addAll(CORE_ASSETS).catch((err) => {
+        console.warn("SW precache incomplete", err);
         return Promise.allSettled(
-          CORE_ASSETS.map((url) => cache.add(url).catch(() => {}))
+          CORE_ASSETS.map((url) => cache.add(url).catch((e) => {
+            console.warn("SW skip", url, e && e.message ? e.message : e);
+          }))
         );
       });
     })
@@ -78,7 +80,11 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(event.request).then((c) => c || caches.match("./index.html")))
+        .catch(() =>
+          caches.match(event.request).then((c) => c || caches.match("./index.html")).then((c) =>
+            c || new Response("", { status: 504, statusText: "Offline" })
+          )
+        )
     );
     return;
   }
@@ -104,10 +110,10 @@ self.addEventListener("fetch", (event) => {
         }
         return response;
       }).catch(() => {
-        // Offline fallback
         if (event.request.destination === "document") {
           return caches.match("./index.html");
         }
+        return new Response("", { status: 504, statusText: "Offline" });
       });
     })
   );

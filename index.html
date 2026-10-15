@@ -50,7 +50,7 @@ a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
             <label for="paramOpinionA">A 占比</label>
             <output id="valOpinionA" for="paramOpinionA">50%</output>
           </div>
-          <input type="range" id="paramOpinionA" min="10" max="90" value="50" step="1" />
+          <input type="range" id="paramOpinionA" min="10" max="90" value="50" step="1" title="改写智能体私下立场。私下表显示真实人数比例，而不是滑块的旧读数。" />
         </div>
 
         <div class="field">
@@ -194,7 +194,7 @@ a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
   </nav>
 
 <script src="../shared/dark-toggle.js" defer></script>
-<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch((err)=>{console.warn('SW register failed', err);})}</script>
 <script src="../shared/cmd-palette.js" defer></script>
 <script src="../shared/toast.js" defer></script>
 <script src="../shared/onboarding.js" defer></script>
