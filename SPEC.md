@@ -38,7 +38,7 @@
 
 ## 6. Dependencies
 
-- **Libraries/CDNs**: 无外部依赖
+- **Libraries/CDNs**: 页面运行时没有 npm 依赖。`index.html` 引用同站点 `../shared/` 的设计令牌和教学脚本（GitHub Pages 上由 `yuuqq.github.io/shared` 提供）。`jsdom` 只在本地 `npm test` 使用，不进页面。
 - **Local data**: 无
 
 ## 7. Risks & Mitigations
@@ -48,9 +48,9 @@
 
 ## 8. Acceptance Criteria
 
-- [ ] 发帖
-- [ ] 点赞点踩
-- [ ] 可见度衰减
-- [ ] 纯静态页面可部署 GitHub Pages
-- [ ] 移动端可用
-- [ ] 隐私提示清晰可见
+- [x] 智能体自动发帖，以及「+A帖 / +B帖」投放。页面没有自由文本发帖框
+- [x] 点赞 / 点踩
+- [x] 可见度衰减（热度排序）
+- [x] 纯静态页面可部署 GitHub Pages
+- [ ] 移动端可用（本轮未重新走查窄屏）
+- [x] 隐私提示在页面底部可见

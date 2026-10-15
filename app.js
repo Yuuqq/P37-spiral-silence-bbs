@@ -1,4 +1,26 @@
 /**
+ * Optional deterministic RNG via ?seed=N.
+ * Simulation code calls window.simRandom. Math.random itself is left alone.
+ */
+window.simRandom = Math.random;
+(function () {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const seedRaw = params.get("seed");
+    if (!seedRaw) return;
+    let s = parseInt(seedRaw, 10);
+    if (!Number.isFinite(s)) s = 0;
+    s = (s | 0) >>> 0;
+    window.simRandom = function mulberry32() {
+      s |= 0; s = (s + 0x6D2B79F5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  } catch (_e) { /* leave window.simRandom alone */ }
+})();
+
+/**
  * P37 沉默的螺旋互动论坛模拟
  * - 私下观点 vs 可见舆论气候（前 N 条热帖）
  * - 点赞/点踩 + 可见度衰减（热度排序/衰减）
@@ -86,10 +108,10 @@ const state = {
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
 function sigmoid(z) { return 1 / (1 + Math.exp(-z)); }
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function pick(arr) { return arr[Math.floor(window.simRandom() * arr.length)]; }
 function shuffleInPlace(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(window.simRandom() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
@@ -184,17 +206,55 @@ function perceivedClimateA(cfg) {
 function makeAgents(cfg) {
   const agents = [];
   for (let i = 0; i < NUM_AGENTS; i++) {
-    const stance = Math.random() < cfg.opinionA ? "A" : "B";
-    const hardcore = Math.random() < cfg.hardcore;
+    const stance = window.simRandom() < cfg.opinionA ? "A" : "B";
+    const hardcore = window.simRandom() < cfg.hardcore;
     // Courage: most people are moderate; hardcore gets a boost
-    const courage = clamp((Math.random() + Math.random()) / 2 + (hardcore ? 0.22 : 0), 0, 1);
+    const courage = clamp((window.simRandom() + window.simRandom()) / 2 + (hardcore ? 0.22 : 0), 0, 1);
     agents.push({ id: i, stance, hardcore, courage, lastSpeakP: 0 });
   }
   return agents;
 }
 
+function measurePrivateA() {
+  const n = state.agents.length;
+  if (!n) return 0.5;
+  let a = 0;
+  for (const agent of state.agents) {
+    if (agent.stance === "A") a++;
+  }
+  return a / n;
+}
+
+// Slider "A 占比" is a real control: rewrite stances so the private meter matches the agents.
+// Other sliders must not call this. Lowest ids flip first so the change is deterministic.
+function rebalanceAgents(cfg) {
+  const n = state.agents.length;
+  if (!n) return;
+  const target = Math.round(clamp(cfg.opinionA, 0, 1) * n);
+  const aAgents = [];
+  const bAgents = [];
+  for (const agent of state.agents) {
+    (agent.stance === "A" ? aAgents : bAgents).push(agent);
+  }
+  const delta = target - aAgents.length;
+  if (delta > 0) {
+    bAgents.sort((x, y) => x.id - y.id);
+    for (let i = 0; i < delta && i < bAgents.length; i++) bAgents[i].stance = "A";
+  } else if (delta < 0) {
+    aAgents.sort((x, y) => x.id - y.id);
+    for (let i = 0; i < -delta && i < aAgents.length; i++) aAgents[i].stance = "B";
+  }
+}
+
+function capStoredPosts(cfg) {
+  if (state.posts.length <= MAX_POSTS_STORE) return;
+  state.posts.sort((a, b) => a.t - b.t);
+  state.posts = state.posts.slice(-MAX_POSTS_STORE);
+  recomputePostScores(cfg);
+}
+
 function makePost(stance, tick, meta) {
-  const authorId = meta?.authorId ?? Math.floor(Math.random() * NUM_AGENTS);
+  const authorId = meta?.authorId ?? Math.floor(window.simRandom() * NUM_AGENTS);
   const isInjected = !!meta?.injected;
   const baseText = pick(POST_TEMPLATES[stance]);
   const text = isInjected ? `【置顶投放】${baseText}` : baseText;
@@ -202,7 +262,7 @@ function makePost(stance, tick, meta) {
   const down = meta?.seedDown ?? 0;
 
   return {
-    id: `${tick}-${Math.random().toString(16).slice(2)}`,
+    id: `${tick}-${window.simRandom().toString(16).slice(2)}`,
     stance,
     t: tick,
     authorId,
@@ -229,8 +289,8 @@ function pickWeighted(posts, weightFn) {
     weights[i] = w;
     total += w;
   }
-  if (total <= 0) return posts[Math.floor(Math.random() * posts.length)];
-  let r = Math.random() * total;
+  if (total <= 0) return posts[Math.floor(window.simRandom() * posts.length)];
+  let r = window.simRandom() * total;
   for (let i = 0; i < posts.length; i++) {
     r -= weights[i];
     if (r <= 0) return posts[i];
@@ -244,8 +304,8 @@ function simulateVotes(perceivedA, cfg) {
 
   const voters = cfg.voterSample;
   for (let i = 0; i < voters; i++) {
-    if (Math.random() > cfg.voteEngagement) continue;
-    const voter = state.agents[Math.floor(Math.random() * state.agents.length)];
+    if (window.simRandom() > cfg.voteEngagement) continue;
+    const voter = state.agents[Math.floor(window.simRandom() * state.agents.length)];
     const support = voter.stance === "A" ? perceivedA : (1 - perceivedA);
     const confidence = sigmoid((support - 0.5) * 9); // 0..1
 
@@ -254,11 +314,11 @@ function simulateVotes(perceivedA, cfg) {
 
     if (aligned) {
       const pUp = clamp(0.18 + 0.60 * confidence, 0, 0.92);
-      if (Math.random() < pUp) target.up += 1;
+      if (window.simRandom() < pUp) target.up += 1;
     } else {
       const pileOn = target.rank < 0 ? 0.10 : 0;
       const pDown = clamp((0.10 + 0.70 * confidence) * (0.35 + 0.65 * cfg.conformityPct) + pileOn, 0, 0.98);
-      if (Math.random() < pDown) target.down += 1;
+      if (window.simRandom() < pDown) target.down += 1;
     }
   }
 }
@@ -326,71 +386,109 @@ function renderTopLabels(visibleA) {
   el.labelClimate.textContent = `气候：A ${pct(visibleA)}`;
 }
 
-function renderPosts(cfg) {
+function renderPosts() {
+  const active = document.activeElement;
   if (!state.posts.length) {
-    el.postList.innerHTML = `<div class="post" data-stance="A" role="listitem" style="opacity:.85">
+    el.postList.replaceChildren();
+    const hint = document.createElement("div");
+    hint.className = "post";
+    hint.setAttribute("data-stance", "A");
+    hint.setAttribute("role", "listitem");
+    hint.style.opacity = ".85";
+    hint.innerHTML = `
       <div class="post-head">
         <div class="badge"><span class="stance">i</span><span>提示</span></div>
         <div class="vis">从 t=0 开始</div>
       </div>
-      <p class="post-body">点击“运行”后，系统会根据当前参数自动生成帖子并模拟点赞/点踩。你也可以直接对帖子进行干预。</p>
+      <p class="post-body"></p>
       <div class="post-foot">
         <span class="score">可见度由热度排序决定</span>
         <span class="vis">前 N 条热帖 = 你的“窗口”</span>
-      </div>
-    </div>`;
+      </div>`;
+    hint.querySelector(".post-body").textContent = "点击“运行”后，系统会根据当前参数自动生成帖子并模拟点赞/点踩。你也可以直接对帖子进行干预。";
+    el.postList.appendChild(hint);
     return;
   }
 
   const sorted = [...state.posts].sort((a, b) => b.rank - a.rank).slice(0, MAX_POSTS_RENDER);
-  const parts = [];
+  const existingNodes = new Map();
+  for (const child of el.postList.children) {
+    const id = child.getAttribute("data-id");
+    if (id) existingNodes.set(id, child);
+  }
+
+  const keep = new Set();
   for (const p of sorted) {
+    keep.add(p.id);
     const shadowed = p.vis < 0.26;
     const net = p.up - p.down;
     const visPct = Math.round(p.vis * 100);
     const author = (p.authorId === -1) ? "系统" : `用户#${p.authorId}`;
-    const stanceLabel = p.stance;
 
-    parts.push(`
-      <article class="post ${shadowed ? "is-shadowed" : ""}" data-stance="${p.stance}" data-id="${p.id}" role="listitem">
+    let article = existingNodes.get(p.id);
+    if (!article) {
+      article = document.createElement("article");
+      article.className = "post";
+      article.setAttribute("data-stance", p.stance);
+      article.setAttribute("data-id", p.id);
+      article.setAttribute("role", "listitem");
+      const upBtn = document.createElement("button");
+      upBtn.type = "button";
+      upBtn.className = "vote-btn";
+      upBtn.setAttribute("data-vote", "up");
+      upBtn.setAttribute("data-id", p.id);
+      upBtn.setAttribute("aria-label", "点赞");
+      const downBtn = document.createElement("button");
+      downBtn.type = "button";
+      downBtn.className = "vote-btn";
+      downBtn.setAttribute("data-vote", "down");
+      downBtn.setAttribute("data-id", p.id);
+      downBtn.setAttribute("aria-label", "点踩");
+      article.innerHTML = `
         <div class="post-head">
           <div class="badge">
-            <span class="stance">${stanceLabel}</span>
-            <span>t=${p.t}</span>
+            <span class="stance"></span>
+            <span class="t-span"></span>
             <span class="dotsep">·</span>
-            <span>${author}</span>
+            <span class="author-span"></span>
           </div>
-          <div class="vis">可见度 ${visPct}%</div>
+          <div class="vis vis-head"></div>
         </div>
-        <p class="post-body">${escapeHtml(p.text)}</p>
+        <p class="post-body"></p>
         <div class="post-foot">
           <div class="votes" aria-label="投票">
-            <button type="button" class="vote-btn" data-vote="up" data-id="${p.id}" aria-label="点赞">赞 ${p.up}</button>
-            <button type="button" class="vote-btn" data-vote="down" data-id="${p.id}" aria-label="点踩">踩 ${p.down}</button>
-            <span class="score" aria-label="净票">净票 ${net}</span>
+            <span class="score" aria-label="净票"></span>
           </div>
-          <div class="vis" aria-label="热度">热度 ${p.rank.toFixed(1)}</div>
-        </div>
-      </article>
-    `);
-  }
-  el.postList.innerHTML = parts.join("");
+          <div class="vis vis-foot" aria-label="热度"></div>
+        </div>`;
+      const votes = article.querySelector(".votes");
+      votes.insertBefore(downBtn, votes.firstChild);
+      votes.insertBefore(upBtn, votes.firstChild);
+    }
 
-  // Also cap stored posts to avoid unbounded growth
-  if (state.posts.length > MAX_POSTS_STORE) {
-    state.posts.sort((a, b) => a.t - b.t);
-    state.posts = state.posts.slice(-MAX_POSTS_STORE);
-    recomputePostScores(cfg);
+    article.classList.toggle("is-shadowed", shadowed);
+    const setText = (selector, text) => {
+      const node = article.querySelector(selector);
+      if (node) node.textContent = text;
+    };
+    setText(".stance", p.stance);
+    setText(".t-span", `t=${p.t}`);
+    setText(".author-span", author);
+    setText(".vis-head", `可见度 ${visPct}%`);
+    setText(".post-body", p.text);
+    setText('button[data-vote="up"]', `赞 ${p.up}`);
+    setText('button[data-vote="down"]', `踩 ${p.down}`);
+    setText(".score", `净票 ${net}`);
+    setText(".vis-foot", `热度 ${p.rank.toFixed(1)}`);
+    el.postList.appendChild(article);
   }
-}
 
-function escapeHtml(s) {
-  return String(s)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll("\"", "&quot;")
-    .replaceAll("'", "&#039;");
+  for (const child of Array.from(el.postList.children)) {
+    const id = child.getAttribute("data-id");
+    if (!id || !keep.has(id)) el.postList.removeChild(child);
+  }
+  // appendChild moves nodes and Chrome drops focus. Put it back without scrolling the thread.
+  if (active && el.postList.contains(active)) active.focus({ preventScroll: true });
 }
 
 function resizeCanvasToDisplaySize(canvas) {
@@ -406,17 +504,20 @@ function resizeCanvasToDisplaySize(canvas) {
   return false;
 }
 
-// Theme-adaptive ink color: resolve --ink once, then apply alpha per use
-let inkRgbCache = null;
+// Theme-adaptive ink. Re-read --ink when the theme toggles so the chart does not stay black or stuck on the previous theme.
+let inkRgbCache = "58,46,32";
+let inkRawCache = "";
 function inkRgba(alpha) {
-  if (inkRgbCache === null) {
-    const raw = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
-    const m = /^#?([0-9a-fA-F]{6})$/.exec(raw);
-    if (m) {
-      const v = parseInt(m[1], 16);
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+  if (raw !== inkRawCache) {
+    inkRawCache = raw;
+    const hex = /^#([0-9a-fA-F]{6})$/.exec(raw);
+    if (hex) {
+      const v = parseInt(hex[1], 16);
       inkRgbCache = `${(v >> 16) & 255},${(v >> 8) & 255},${v & 255}`;
     } else {
-      inkRgbCache = "0,0,0";
+      const rgb = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i.exec(raw);
+      inkRgbCache = rgb ? `${rgb[1]},${rgb[2]},${rgb[3]}` : "58,46,32";
     }
   }
   return `rgba(${inkRgbCache},${alpha})`;
@@ -538,13 +639,13 @@ function renderAll(cfg, privateA, visibleA, silentRate) {
   el.labelSilent.textContent = `沉默 ${pct(silentRate)}`;
 
   updateInsight(privateA, visibleA, silentRate, cfg);
-  renderPosts(cfg);
+  renderPosts();
   drawChart();
 }
 
 function runOneTick() {
   const cfg = getUiConfig();
-  const privateA = cfg.opinionA;
+  const privateA = measurePrivateA();
 
   state.tick += 1;
 
@@ -559,7 +660,7 @@ function runOneTick() {
   for (const a of state.agents) {
     const pSpeak = speakProbability(a, perceivedA, cfg);
     a.lastSpeakP = pSpeak;
-    if (Math.random() < pSpeak) speakers.push(a);
+    if (window.simRandom() < pSpeak) speakers.push(a);
   }
   shuffleInPlace(speakers);
   const newSpeakers = speakers.slice(0, cfg.maxNewPostsPerTick);
@@ -605,6 +706,7 @@ function runOneTick() {
 
   recordHistory(privateA, visibleA, speakA, silentRate);
   spiralCheck(privateA, visibleA, silentRate);
+  capStoredPosts(cfg);
 
   renderAll(cfg, privateA, visibleA, silentRate);
 }
@@ -641,11 +743,12 @@ function resetSimulation() {
   state.agents = makeAgents(cfg);
 
   recomputePostScores(cfg);
+  const privateA = measurePrivateA();
   const v0 = mediaSignalA(cfg);
-  recordHistory(cfg.opinionA, v0, cfg.opinionA, estimateSilentRate(v0, cfg));
+  recordHistory(privateA, v0, privateA, estimateSilentRate(v0, cfg));
   setStatus("已重置。点击“运行”观察可见舆论如何偏离真实分布。");
   el.btnPlay.textContent = "运行";
-  renderAll(cfg, cfg.opinionA, v0, estimateSilentRate(v0, cfg));
+  renderAll(cfg, privateA, v0, estimateSilentRate(v0, cfg));
 }
 
 function play() {
@@ -689,9 +792,10 @@ function injectHot(stance) {
   const seedUp = 26;
   const seedDown = 0;
   state.posts.push(makePost(stance, state.tick, { authorId: -1, injected: true, seedUp, seedDown }));
+  capStoredPosts(cfg);
   recomputePostScores(cfg);
   setStatus(`已投放 ${stance} 热帖。观察它如何改变“前 N 条热帖”的构成。`);
-  const privateA = cfg.opinionA;
+  const privateA = measurePrivateA();
   const visibleA = perceivedClimateA(cfg);
   const silentRate = estimateSilentRate(visibleA, cfg);
   renderAll(cfg, privateA, visibleA, silentRate);
@@ -702,14 +806,12 @@ function injectHot(stance) {
   inp.addEventListener("input", () => {
     updateValueLabels();
     const cfg = getUiConfig();
-    // Live re-render (does not mutate state except scores)
+    if (inp === el.paramOpinionA) rebalanceAgents(cfg);
     recomputePostScores(cfg);
-    const privateA = cfg.opinionA;
+    const privateA = measurePrivateA();
     const visibleA = perceivedClimateA(cfg);
-    const silentRate = 0;
-    renderMeters(privateA, visibleA);
-    renderTopLabels(visibleA);
-    drawChart();
+    const silentRate = estimateSilentRate(visibleA, cfg);
+    renderAll(cfg, privateA, visibleA, silentRate);
   });
 });
 
@@ -733,7 +835,7 @@ el.postList.addEventListener("click", (e) => {
 
   const cfg = getUiConfig();
   recomputePostScores(cfg);
-  const privateA = cfg.opinionA;
+  const privateA = measurePrivateA();
   const visibleA = perceivedClimateA(cfg);
   const silentRate = estimateSilentRate(visibleA, cfg);
   renderAll(cfg, privateA, visibleA, silentRate);
@@ -758,3 +860,12 @@ el.postList.addEventListener("click", (e) => {
 updateValueLabels();
 resetSimulation();
 window.addEventListener("resize", () => drawChart());
+try {
+  let lastInk = inkRawCache;
+  new MutationObserver(() => {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+    if (raw === lastInk) return;
+    lastInk = raw;
+    drawChart();
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme", "style"] });
+} catch (_e) { }
