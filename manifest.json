@@ -4,19 +4,14 @@
   "description": "P37 沉默的螺旋：论坛舆论气候实验台 — 新闻素养工具",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f4f0e8",
-  "theme_color": "#c7491f",
+  "background_color": "#F0E6CF",
+  "theme_color": "#A2402F",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>",
+      "src": "favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>",
-      "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
