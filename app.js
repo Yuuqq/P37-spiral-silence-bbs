@@ -357,7 +357,6 @@ function renderPosts(cfg) {
           <div class="badge">
             <span class="stance">${stanceLabel}</span>
             <span>t=${p.t}</span>
-            <span class="dotsep">·</span>
             <span>${author}</span>
           </div>
           <div class="vis">可见度 ${visPct}%</div>
@@ -365,8 +364,8 @@ function renderPosts(cfg) {
         <p class="post-body">${escapeHtml(p.text)}</p>
         <div class="post-foot">
           <div class="votes" aria-label="投票">
-            <button type="button" class="vote-btn" data-vote="up" data-id="${p.id}" aria-label="点赞">赞 ${p.up}</button>
-            <button type="button" class="vote-btn" data-vote="down" data-id="${p.id}" aria-label="点踩">踩 ${p.down}</button>
+            <button type="button" class="vote-btn ghost" data-vote="up" data-id="${p.id}" aria-label="点赞">赞 ${p.up}</button>
+            <button type="button" class="vote-btn ghost" data-vote="down" data-id="${p.id}" aria-label="点踩">踩 ${p.down}</button>
             <span class="score" aria-label="净票">净票 ${net}</span>
           </div>
           <div class="vis" aria-label="热度">热度 ${p.rank.toFixed(1)}</div>
@@ -477,7 +476,7 @@ function drawChart() {
 
   // Silent rate shading (low alpha)
   ctx.save();
-  ctx.fillStyle = "rgba(166,31,18,.06)";
+  ctx.fillStyle = "rgba(162,64,47,.06)";
   ctx.beginPath();
   ctx.moveTo(xAt(0), bottom);
   for (let i = 0; i < n; i++) {
@@ -509,11 +508,12 @@ function drawChart() {
   }
 
   const css = getComputedStyle(document.documentElement);
-  const cPrivate = css.getPropertyValue("--tone-a").trim() || "#c7491f";
-  const cVisible = css.getPropertyValue("--tone-b").trim() || "#176c74";
+  const cPrivate = css.getPropertyValue("--accent").trim() || "#A2402F";
+  const cVisible = css.getPropertyValue("--ok").trim() || "#51724B";
+  const cSpeak = css.getPropertyValue("--gold").trim() || "#8C6A2F";
   drawLine("privateA", cPrivate, Math.max(2, Math.round(2 * (window.devicePixelRatio || 1))));
   drawLine("visibleA", cVisible, Math.max(2, Math.round(2 * (window.devicePixelRatio || 1))));
-  drawLine("speakA", "#7c3aed", Math.max(2, Math.round(2 * (window.devicePixelRatio || 1))));
+  drawLine("speakA", cSpeak, Math.max(2, Math.round(2 * (window.devicePixelRatio || 1))));
 
   // Current marker
   const last = data[data.length - 1];

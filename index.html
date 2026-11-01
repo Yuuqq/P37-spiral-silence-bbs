@@ -2,46 +2,47 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📰</text></svg>" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#A2402F" />
   <title>P37 沉默的螺旋：论坛舆论气候实验台</title>
   <link rel="stylesheet" href="../shared/design-tokens.css" />
-<link rel="stylesheet" href="./modern-styles.css" />
-<link rel="stylesheet" href="./styles.css" />
-<meta name="description" content="沉默的螺旋互动论坛模拟：私下观点 vs 可见舆论气候，点赞/点踩与可见度衰减如何让少数派逐步沉默。" />
+  <link rel="stylesheet" href="../shared/modern-styles.css" />
+  <link rel="stylesheet" href="../shared/tool-chrome.css" />
+  <link rel="stylesheet" href="./styles.css" />
+  <meta name="description" content="沉默的螺旋互动论坛模拟：私下观点 vs 可见舆论气候，点赞/点踩与可见度衰减如何让少数派逐步沉默。" />
   <meta property="og:title" content="P37 沉默的螺旋：论坛舆论气候实验台" />
   <meta property="og:description" content="沉默的螺旋互动论坛模拟：私下观点 vs 可见舆论气候，点赞/点踩与可见度衰减的反馈回路。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://yuuqq.github.io/P37-spiral-silence-bbs/" />
   <link rel="manifest" href="./manifest.json" />
-<style media="print">
-.gnav,.pedagogy-panel,.explore-section,[class*="dark-toggle"],button[aria-label]{display:none!important}
-body{background:#fff!important;color:#000!important;font-size:11pt}
-.app,main,.container{box-shadow:none!important;border:none!important;padding:0!important}
-a{color:#000!important;text-decoration:underline}
-a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
-@page{margin:2cm}
-</style>
 </head>
 
 <body>
   <main aria-label="主内容区域" class="app">
-    <!-- Compact Header -->
+    <header class="tool-chrome" data-tool-id="P37">
+      <a class="tool-chrome__mark" href="../P00-dashboard/">新闻实验工具</a>
+      <span class="tool-chrome__id">P37</span>
+    </header>
+
+    <details class="tool-teach">
+      <summary>如何使用</summary>
+      <p>调节左侧参数后，用「运行」连续演化，或用「单步」看一轮变化；「重置」回到初始分布。中间对照私下观点与可见舆论，论坛热帖里的前 N 条就是注意力窗口。点赞、点踩，或用「+A帖」「+B帖」投放热帖，会改动热度排序和可见气候。</p>
+      <p>诺尔·诺伊曼的“沉默的螺旋”认为：人们会评估主流舆论，当发现自己属少数时倾向沉默。本工具用 320 个智能体的 ABM 仿真演示这一现象——恐惧孤立与可见度衰减可以让可见舆论一边倒，私下观点却未必跟着改变。</p>
+    </details>
+
     <header class="header-bar">
       <div class="header-left">
-        <span class="kicker">P37</span>
         <h1>沉默的螺旋：论坛舆论气候实验台</h1>
       </div>
       <p class="header-desc">
-        你看到的"主流"未必等于真实多数。调节参数，观察
+        你看到的“主流”未必等于真实多数。调节参数，观察
         <strong>恐惧孤立</strong>与<strong>可见度衰减</strong>如何让意见一边倒。
       </p>
     </header>
 
-    <!-- Main 3-column layout -->
     <section class="main-grid" aria-label="主面板">
 
-      <!-- LEFT: Controls -->
       <section class="panel controls" aria-label="仿真参数">
         <h2>参数</h2>
 
@@ -94,19 +95,17 @@ a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
         </div>
 
         <div class="actions">
-          <button id="btnReset" type="button" class="btn">重置</button>
+          <button id="btnReset" type="button" class="btn ghost">重置</button>
           <button id="btnPlay" type="button" class="btn primary">运行</button>
           <button id="btnStep" type="button" class="btn ghost">单步</button>
-          <button id="btnNudgeA" type="button" class="btn subtle">+A帖</button>
-          <button id="btnNudgeB" type="button" class="btn subtle">+B帖</button>
+          <button id="btnNudgeA" type="button" class="btn ghost">+A帖</button>
+          <button id="btnNudgeB" type="button" class="btn ghost">+B帖</button>
         </div>
 
-        <p id="status" class="status" aria-live="polite">已初始化。点击"运行"观察螺旋形成。</p>
+        <p id="status" class="status" role="status" aria-live="polite">已初始化。点击“运行”观察螺旋形成。</p>
       </section>
 
-      <!-- CENTER: Metrics + Chart + Forum -->
       <section class="panel stage" aria-label="论坛与指标">
-        <!-- Meters row -->
         <div class="meters-row">
           <div class="stat-inline">
             <span class="stat-label">私下</span>
@@ -126,14 +125,11 @@ a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
           </div>
           <div class="stat-inline compact-stats">
             <span id="labelTick">t=0</span>
-            <span class="dotsep">·</span>
             <span id="labelPosts">A 0 · B 0</span>
-            <span class="dotsep">·</span>
             <span id="labelSilent">沉默 0%</span>
           </div>
         </div>
 
-        <!-- Chart -->
         <div class="chart-wrap">
           <canvas id="chartCanvas" width="1000" height="180" role="img" aria-label="沉默螺旋曲线图"></canvas>
           <div class="chart-legend" aria-label="图例">
@@ -143,7 +139,6 @@ a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
           </div>
         </div>
 
-        <!-- Forum posts (scrollable) -->
         <div class="thread-section">
           <div class="thread-head">
             <h2 class="thread-title">论坛热帖</h2>
@@ -153,56 +148,43 @@ a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
         </div>
       </section>
 
-      <!-- RIGHT: Insight -->
       <aside class="panel insight-panel" aria-label="解读">
         <h2>解读</h2>
         <p id="insightText" class="insight-text">
-          当"前 N 条热帖"被某一方占据时，另一方会感知到更强的孤立风险，从而更少发声，进一步加剧单一化。
+          当“前 N 条热帖”被某一方占据时，另一方会感知到更强的孤立风险，从而更少发声，进一步加剧单一化。
         </p>
         <div id="spiralAlert" class="alert hidden" role="status">
-          🌀 沉默的螺旋已形成：可见舆论长期背离真实分布。
+          沉默的螺旋已形成：可见舆论长期背离真实分布。
         </div>
         <div class="tips">
           <div class="tip">
             <div class="tip-h">打断螺旋</div>
-            <p class="tip-p">提高"死硬派比例"或增大"注意力窗口"。</p>
+            <p class="tip-p">提高“死硬派比例”或增大“注意力窗口”。</p>
           </div>
           <div class="tip">
             <div class="tip-h">加速螺旋</div>
-            <p class="tip-p">提高"恐惧孤立"与"点踩力度"，缩小"注意力窗口"。</p>
+            <p class="tip-p">提高“恐惧孤立”与“点踩力度”，缩小“注意力窗口”。</p>
           </div>
         </div>
-        <details class="teach-card">
-          <summary>🎓 理论背景</summary>
-          <p>诺尔·诺伊曼的"沉默的螺旋"认为：人们会评估主流舆论，当发现自己属少数时倾向沉默。本工具用 320 个智能体的 ABM 仿真演示这一现象。</p>
-        </details>
       </aside>
     </section>
+
+    <footer class="tool-footer">
+      数据边界以附录 A 为准：能在本机完成的计算不主动外发；示例数据仅供课堂；本工具输出不得单独当作结论。
+      <a href="../P00-dashboard/">返回工具箱</a>
+    </footer>
   </main>
   <script src="./pm-metrics.js" defer></script>
-<script src="./app.js" defer></script>
-
-  <!-- Privacy Notice -->
-  <div style="text-align:center;padding:12px 16px;font-size:12px;color:#888;border-top:1px solid #eee;margin-top:24px;">
-    🔒 隐私提示：本工具所有数据处理均在您的浏览器本地完成，不会上传任何数据至服务器。
-  </div>
-
-  <!-- Cross-Project Navigation -->
-  <nav aria-label="工具箱导航" style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:13px;border-top:1px solid #e5e5e5;margin-top:16px;color:#666;">
-    <a href="https://yuuqq.github.io/journalism-toolbox/" style="text-decoration:none;">📋 工具箱导航</a>
-    <span style="opacity:.4">P37</span>
-  </nav>
-
-<script src="../shared/dark-toggle.js" defer></script>
-<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}</script>
-<script src="../shared/cmd-palette.js" defer></script>
-<script src="../shared/toast.js" defer></script>
-<script src="../shared/onboarding.js" defer></script>
-<script src="../shared/pedagogy-data-p1.js" defer></script>
-<script src="../shared/pedagogy-data-p2.js" defer></script>
-<script src="../shared/global-nav.js" defer></script>
-<script src="../shared/kbd-hints.js" defer></script>
+  <script src="./app.js" defer></script>
+  <script src="../shared/dark-toggle.js" defer></script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}</script>
+  <script src="../shared/cmd-palette.js" defer></script>
+  <script src="../shared/toast.js" defer></script>
+  <script src="../shared/onboarding.js" defer></script>
+  <script src="../shared/pedagogy-data-p1.js" defer></script>
+  <script src="../shared/pedagogy-data-p2.js" defer></script>
+  <script src="../shared/global-nav.js" defer></script>
+  <script src="../shared/kbd-hints.js" defer></script>
 </body>
 
 </html>
-
