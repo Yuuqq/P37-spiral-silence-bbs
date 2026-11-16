@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f6f3ec" />
+  <title>墨色标本 · 沉默的螺旋</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&family=Noto+Serif+SC:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./theme.css" />
+</head>
+<body>
+  <article class="sheet">
+    <header class="mast">
+      <div class="mast-row">
+        <a class="mark" href="#bench">新闻实验工具</a>
+        <span class="pid">P37</span>
+      </div>
+      <h1>沉默的螺旋<span class="sub">论坛舆论气候实验台</span></h1>
+      <p class="deck">你看到的主流未必等于真实多数。恐惧孤立和可见度衰减，可以让广场上只剩一种声音。</p>
+    </header>
+
+    <details class="teach">
+      <summary>如何使用</summary>
+      <p>调参数，用「运行」或「单步」看演化，用「重置」回到起点。实线是私下观点，虚线是看得见的舆论，细线是这一轮谁在发帖。三条都用墨，靠线型区分。诺尔-诺依曼认为，人会先估计主流，发现自己是少数就倾向沉默。本页只演示这套配色，不跑原来的仿真。</p>
+    </details>
+
+    <div class="bench" id="bench">
+      <section class="col" aria-label="参数">
+        <h2>参数</h2>
+
+        <label class="field">
+          <span class="field-top"><span>A 占比</span><output id="opinionOut">50</output></span>
+          <input id="opinion" type="range" min="10" max="90" value="50" />
+        </label>
+        <label class="field">
+          <span class="field-top"><span>恐惧孤立</span><output id="fearOut">70</output></span>
+          <input id="fear" type="range" min="0" max="100" value="70" />
+        </label>
+        <label class="field">
+          <span class="field-top"><span>点踩力度</span><output id="downOut">55</output></span>
+          <input id="down" type="range" min="0" max="100" value="55" />
+        </label>
+        <label class="field">
+          <span class="field-top"><span>注意力窗口</span><output id="windowOut">22</output></span>
+          <input id="window" type="range" min="8" max="60" value="22" />
+        </label>
+        <label class="field">
+          <span class="field-top"><span>媒体偏置</span><output id="biasOut">0</output></span>
+          <input id="bias" type="range" min="-50" max="50" value="0" />
+        </label>
+        <label class="field">
+          <span class="field-top"><span>死硬派</span><output id="hardOut">6</output></span>
+          <input id="hard" type="range" min="0" max="25" value="6" />
+        </label>
+
+        <div class="actions">
+          <button type="button" class="textbtn" id="reset">重置</button>
+          <button type="button" class="textbtn" id="step">单步</button>
+          <button type="button" class="textbtn" id="nudgeA">+A帖</button>
+          <button type="button" class="textbtn" id="nudgeB">+B帖</button>
+          <button type="button" class="run" id="run" aria-pressed="false">运行</button>
+        </div>
+        <p class="status" id="status" role="status">待运行。私下仍是五五，看得见的舆论已经偏向 B。</p>
+      </section>
+
+      <section class="col stage" aria-label="论坛与曲线">
+        <div class="stage-head">
+          <h2>曲线</h2>
+          <span class="tick" id="tick">t = 12</span>
+        </div>
+
+        <div class="meter">
+          <span class="meter-k">私下</span>
+          <span class="track" aria-hidden="true"><span class="fill" id="privateFill" style="width:50%"></span></span>
+          <span class="meter-v" id="privateRead">A 50 / B 50</span>
+        </div>
+        <div class="meter">
+          <span class="meter-k">可见</span>
+          <span class="track" aria-hidden="true"><span class="fill" id="visibleFill" style="width:28%"></span></span>
+          <span class="meter-v" id="visibleRead">A 28 / B 72</span>
+        </div>
+
+        <figure class="figure">
+          <svg viewBox="0 0 640 168" role="img" aria-label="私下为实线，可见为虚线，发帖为细线">
+            <g fill="none" stroke="#c9c3b8" stroke-width="1">
+              <path d="M36 20 H624" />
+              <path d="M36 78 H624" />
+              <path d="M36 136 H624" />
+            </g>
+            <g fill="#5c564e" font-size="11" font-family="Noto Sans SC, sans-serif">
+              <text x="0" y="24">1.00</text>
+              <text x="0" y="82">0.50</text>
+              <text x="0" y="140">0.00</text>
+            </g>
+            <path d="M36 78 H624" fill="none" stroke="#1a1612" stroke-width="1.75" />
+            <path d="M36 78 C220 92 420 112 624 122" fill="none" stroke="#1a1612" stroke-width="1.75" stroke-dasharray="8 6" />
+            <path d="M36 108 L140 128 L220 112 L310 134 L400 118 L490 134 L560 122 L624 130" fill="none" stroke="#4a433c" stroke-width="1.2" />
+          </svg>
+          <ul class="legend">
+            <li><i class="solid"></i>私下</li>
+            <li><i class="dash"></i>可见</li>
+            <li><i class="thin"></i>发帖</li>
+          </ul>
+        </figure>
+
+        <div class="thread-head">
+          <h2>论坛热帖</h2>
+          <span class="climate" id="climate">气候 A 28</span>
+        </div>
+        <div id="posts">
+          <article class="post">
+            <div class="post-top"><span><span class="stance">B</span>t = 12　用户 #84</span><span>可见度 96</span></div>
+            <p>我更倾向 B，但这里说一句就好：在这种氛围里表达异议成本太高了。</p>
+            <div class="post-foot"><span><button type="button" class="vote">赞 4</button>　<button type="button" class="vote">踩 0</button></span><span>净票 4</span></div>
+          </article>
+          <article class="post">
+            <div class="post-top"><span><span class="stance">B</span>t = 11　用户 #12</span><span>可见度 91</span></div>
+            <p>如果只剩一种声音，那就是信息被筛过了。B 的问题值得单独拆解。</p>
+            <div class="post-foot"><span><button type="button" class="vote">赞 2</button>　<button type="button" class="vote">踩 0</button></span><span>净票 2</span></div>
+          </article>
+          <article class="post is-faint">
+            <div class="post-top"><span><span class="stance">A</span>t = 9　用户 #220</span><span>可见度 31</span></div>
+            <p>从成本收益看，A 方案的外部性被低估了，建议把影响拆到可核查指标上。</p>
+            <div class="post-foot"><span><button type="button" class="vote">赞 1</button>　<button type="button" class="vote">踩 3</button></span><span>净票 -2</span></div>
+          </article>
+        </div>
+      </section>
+
+      <aside class="col note" aria-label="解读">
+        <h2>解读</h2>
+        <p>看得见的舆论已经明显偏向 B。私下仍接近各半，广场上却会形成多数错觉。</p>
+        <h3>打断螺旋</h3>
+        <p>提高死硬派，或把注意力窗口拉大，让更多帖子留在可见范围里。</p>
+        <h3>加速螺旋</h3>
+        <p>提高恐惧孤立和点踩力度，并把窗口缩小。少数声音会更快沉下去。</p>
+      </aside>
+    </div>
+
+    <footer class="foot">
+      数据边界以附录 A 为准：能在本机完成的计算不主动外发；示例数据仅供课堂；本页输出不得单独当作结论。
+      <a href="https://github.com/Yuuqq/P37-spiral-silence-bbs">返回 P37</a>
+    </footer>
+  </article>
+  <script>
+    const opinion = document.querySelector("#opinion");
+    const opinionOut = document.querySelector("#opinionOut");
+    const privateFill = document.querySelector("#privateFill");
+    const privateRead = document.querySelector("#privateRead");
+    const visibleFill = document.querySelector("#visibleFill");
+    const visibleRead = document.querySelector("#visibleRead");
+    const climate = document.querySelector("#climate");
+    const tickEl = document.querySelector("#tick");
+    const status = document.querySelector("#status");
+    const run = document.querySelector("#run");
+    const posts = document.querySelector("#posts");
+
+    const defaults = { opinion: 50, fear: 70, down: 55, window: 22, bias: 0, hard: 6 };
+    let tick = 12;
+    let visible = 28;
+
+    function paintPrivate() {
+      const a = Number(opinion.value);
+      opinionOut.textContent = String(a);
+      privateFill.style.width = a + "%";
+      privateRead.textContent = "A " + a + " / B " + (100 - a);
+    }
+
+    function paintVisible() {
+      visibleFill.style.width = visible + "%";
+      visibleRead.textContent = "A " + visible + " / B " + (100 - visible);
+      climate.textContent = "气候 A " + visible;
+      tickEl.textContent = "t = " + tick;
+    }
+
+    function bindOutput(id, outId) {
+      const input = document.querySelector(id);
+      const out = document.querySelector(outId);
+      input.addEventListener("input", () => { out.textContent = input.value; });
+    }
+
+    opinion.addEventListener("input", paintPrivate);
+    bindOutput("#fear", "#fearOut");
+    bindOutput("#down", "#downOut");
+    bindOutput("#window", "#windowOut");
+    bindOutput("#bias", "#biasOut");
+    bindOutput("#hard", "#hardOut");
+
+    document.querySelector("#reset").addEventListener("click", () => {
+      Object.entries(defaults).forEach(([key, value]) => {
+        document.querySelector("#" + key).value = String(value);
+        const out = document.querySelector("#" + key + "Out");
+        if (out) out.textContent = String(value);
+      });
+      tick = 12;
+      visible = 28;
+      paintPrivate();
+      paintVisible();
+      run.setAttribute("aria-pressed", "false");
+      run.textContent = "运行";
+      status.textContent = "已重置。私下回到五五，可见仍停在示意的 A 28。";
+    });
+
+    document.querySelector("#step").addEventListener("click", () => {
+      tick += 1;
+      visible = Math.max(8, visible - 4);
+      paintVisible();
+      status.textContent = "已单步。可见继续偏离，私下只跟着 A 占比滑杆走。";
+    });
+
+    run.addEventListener("click", () => {
+      const on = run.getAttribute("aria-pressed") === "true";
+      run.setAttribute("aria-pressed", on ? "false" : "true");
+      run.textContent = on ? "运行" : "暂停";
+      status.textContent = on
+        ? "已暂停。"
+        : "运行中。实线是私下，虚线是可见。";
+    });
+
+    function nudge(stance) {
+      const node = document.createElement("article");
+      node.className = "post";
+      node.innerHTML =
+        '<div class="post-top"><span><span class="stance">' + stance +
+        "</span>t = " + tick + "　置顶</span><span>可见度 99</span></div>" +
+        "<p>" + (stance === "A"
+          ? "【置顶投放】把反例也放进来讨论：A 并不等于完美，但它在当前约束下更可行。"
+          : "【置顶投放】我不反对讨论 A，但请别把质疑等同于敌意。") + "</p>" +
+        '<div class="post-foot"><span>赞 26　踩 0</span><span>净票 26</span></div>';
+      posts.prepend(node);
+      status.textContent = "已投放 " + stance + " 热帖。";
+    }
+
+    document.querySelector("#nudgeA").addEventListener("click", () => nudge("A"));
+    document.querySelector("#nudgeB").addEventListener("click", () => nudge("B"));
+  </script>
+</body>
+</html>
